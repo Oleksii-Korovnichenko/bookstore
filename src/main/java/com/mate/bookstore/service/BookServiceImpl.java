@@ -2,9 +2,8 @@ package com.mate.bookstore.service;
 
 import com.mate.bookstore.dao.BookRepository;
 import com.mate.bookstore.model.Book;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
+import org.springframework.stereotype.Service;
 
 @Service
 public class BookServiceImpl implements BookService {
