@@ -2,7 +2,6 @@ package com.mate.bookstore.repository;
 
 import com.mate.bookstore.exception.DataProcessingException;
 import com.mate.bookstore.model.Book;
-import jakarta.persistence.criteria.CriteriaQuery;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
@@ -41,10 +40,7 @@ public class BookRepositoryImpl implements BookRepository {
     @Override
     public List<Book> findAll() {
         try (Session session = sessionFactory.openSession()) {
-            CriteriaQuery<Book> criteriaQuery = session.getCriteriaBuilder()
-                    .createQuery(Book.class);
-            criteriaQuery.from(Book.class);
-            return session.createQuery(criteriaQuery).getResultList();
+            return session.createQuery("from Book", Book.class).list();
         } catch (Exception e) {
             throw new DataProcessingException("Can't find all books", e);
         }
