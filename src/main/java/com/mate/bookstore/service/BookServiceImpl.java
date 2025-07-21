@@ -12,12 +12,17 @@ public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
 
     @Override
-    public Book save(Book book) {
+    public Book createBook(Book book) {
         return bookRepository.save(book);
     }
 
     @Override
-    public List<Book> findAll() {
+    public List<Book> getAll() {
         return bookRepository.findAll();
+    }
+
+    @Override
+    public Book getById(Long id) {
+        return bookRepository.getById(id);
     }
 }

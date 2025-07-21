@@ -4,7 +4,9 @@ import com.mate.bookstore.model.Book;
 import java.util.List;
 
 public interface BookService {
-    Book save(Book book);
+    Book createBook(Book book);
 
-    List<Book> findAll();
+    List<Book> getAll();
+
+    Book getById(Long id);
 }
