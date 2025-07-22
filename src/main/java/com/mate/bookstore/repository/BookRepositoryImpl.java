@@ -4,6 +4,7 @@ import com.mate.bookstore.exception.DataProcessingException;
 import com.mate.bookstore.exception.EntityNotFoundException;
 import com.mate.bookstore.model.Book;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -18,7 +19,9 @@ public class BookRepositoryImpl implements BookRepository {
     @Override
     public Book save(Book book) {
         Transaction transaction = null;
-        try (Session session = sessionFactory.openSession()) {
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
             transaction = session.beginTransaction();
             session.persist(book);
             transaction.commit();
@@ -28,6 +31,10 @@ public class BookRepositoryImpl implements BookRepository {
                 transaction.rollback();
             }
             throw new DataProcessingException("Can't save book " + book, e);
+        } finally {
+            if (session != null) {
+                session.close();
+            }
         }
     }
 
@@ -36,7 +43,7 @@ public class BookRepositoryImpl implements BookRepository {
         try (Session session = sessionFactory.openSession()) {
             return session.createQuery("FROM Book", Book.class).getResultList();
         } catch (Exception e) {
-            throw new EntityNotFoundException("Can't find all books", e);
+            throw new DataProcessingException("Can't find all books", e);
         }
     }
 
@@ -44,10 +51,8 @@ public class BookRepositoryImpl implements BookRepository {
     public Book getById(Long id) {
         try (Session session = sessionFactory.openSession()) {
             Book book = session.get(Book.class, id);
-            if (book == null) {
-                throw new EntityNotFoundException("Book not found by id: " + id);
-            }
-            return book;
+            return Optional.ofNullable(book)
+                    .orElseThrow(() -> new DataProcessingException("Book not found by id: " + id));
         } catch (Exception e) {
             throw new EntityNotFoundException("Error finding book by id: " + id, e);
         }
