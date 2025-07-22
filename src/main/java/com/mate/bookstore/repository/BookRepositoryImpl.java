@@ -3,25 +3,24 @@ package com.mate.bookstore.repository;
 import com.mate.bookstore.exception.DataProcessingException;
 import com.mate.bookstore.exception.EntityNotFoundException;
 import com.mate.bookstore.model.Book;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.EntityTransaction;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
 public class BookRepositoryImpl implements BookRepository {
-    private final EntityManagerFactory entityManagerFactory;
+    private final SessionFactory sessionFactory;
 
     @Override
     public Book save(Book book) {
-        EntityTransaction transaction = null;
-        try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
-            transaction = entityManager.getTransaction();
-            transaction.begin();
-            entityManager.persist(book);
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+            session.persist(book);
             transaction.commit();
             return book;
         } catch (Exception e) {
@@ -34,8 +33,8 @@ public class BookRepositoryImpl implements BookRepository {
 
     @Override
     public List<Book> findAll() {
-        try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
-            return entityManager.createQuery("SELECT b from Book b", Book.class).getResultList();
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery("FROM Book", Book.class).getResultList();
         } catch (Exception e) {
             throw new EntityNotFoundException("Can't find all books", e);
         }
@@ -43,10 +42,14 @@ public class BookRepositoryImpl implements BookRepository {
 
     @Override
     public Book getById(Long id) {
-        try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
-            return entityManager.find(Book.class, id);
+        try (Session session = sessionFactory.openSession()) {
+            Book book = session.get(Book.class, id);
+            if (book == null) {
+                throw new EntityNotFoundException("Book not found by id: " + id);
+            }
+            return book;
         } catch (Exception e) {
-            throw new EntityNotFoundException("Can't find book by id: " + id, e);
+            throw new EntityNotFoundException("Error finding book by id: " + id, e);
         }
     }
 }
